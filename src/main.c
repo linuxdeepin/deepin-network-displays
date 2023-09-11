@@ -16,10 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "deepin-network-displays-config.h"
+#include "nd-window.h"
 #include <glib/gi18n.h>
 #include <gst/gst.h>
-#include "gnome-network-displays-config.h"
-#include "nd-window.h"
+
+#include "nd-dbus-manager.h"
+
+static void
+start_deepin_process ()
+{
+  NdDbusManager *nd_dbus = nd_dbus_manager_new ();
+  dbus_export (nd_dbus);
+  g_info ("stop dbus export");
+  g_object_unref (nd_dbus);
+}
 
 static void
 on_activate (GtkApplication *app)
@@ -31,7 +42,11 @@ on_activate (GtkApplication *app)
    * by your users.
    */
   g_assert (GTK_IS_APPLICATION (app));
-
+  if (g_strcmp0 (g_getenv ("NETWORK_DISPLAYS_GUI"), "enable") != 0)
+    {
+      start_deepin_process ();
+      return;
+    }
   /* Get the current window or create one if necessary. */
   window = gtk_application_get_active_window (app);
   if (window == NULL)
@@ -51,9 +66,8 @@ int
 main (int   argc,
       char *argv[])
 {
-  g_autoptr(GtkApplication) app = NULL;
+  g_autoptr (GtkApplication) app = NULL;
   int ret;
-
   /* Set up gettext translations */
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
@@ -66,8 +80,7 @@ main (int   argc,
    * application windows, integration with the window manager/compositor, and
    * desktop features such as file opening and single-instance applications.
    */
-  app = gtk_application_new ("org.gnome.NetworkDisplays", G_APPLICATION_FLAGS_NONE);
-
+  app = gtk_application_new ("com.deepin.Cooperation.Application", G_APPLICATION_FLAGS_NONE);
   /*
    * We connect to the activate signal to create a window when the application
    * has been launched. Additionally, this signal notifies us when the user

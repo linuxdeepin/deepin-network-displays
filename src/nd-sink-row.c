@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-sink-row.h"
 
 struct _NdSinkRow

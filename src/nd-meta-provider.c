@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-meta-provider.h"
 #include "nd-meta-sink.h"
 
@@ -52,7 +52,7 @@ static void
 provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider *provider)
 {
   g_autoptr(GPtrArray) sink_matches = NULL;
-  g_autoptr(GPtrArray) meta_sinks = NULL;
+  g_autoptr(GPtrArray) meta_sinks = NULL; // 存放meta_sink的数组 和sink能匹配上的所有已经保存的sink
   NdMetaSink *meta_sink;
 
   g_object_get (sink, "matches", &sink_matches, NULL);
@@ -61,7 +61,7 @@ provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider 
   meta_sinks = g_ptr_array_new ();
 
   for (gint i = 0; i < meta_provider->sinks->len; i++)
-    if (nd_meta_sink_matches_sink (g_ptr_array_index (meta_provider->sinks, i), sink))
+    if (nd_meta_sink_matches_sink (g_ptr_array_index (meta_provider->sinks, i), sink)) // 通过matches字段(实际是数组)的内容判断是否为同一个设备
       g_ptr_array_add (meta_sinks, g_ptr_array_index (meta_provider->sinks, i));
 
   if (meta_sinks->len > 1)
@@ -69,7 +69,8 @@ provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider 
 
   if (meta_sinks->len > 0)
     {
-      meta_sink = g_ptr_array_remove_index (meta_sinks, 0);
+      g_info("matched sink num == 1");
+      meta_sink = g_ptr_array_remove_index (meta_sinks, 0); // g_ptr_array_remove_index返回值是移除的那个元素
 
       while (meta_sinks->len > 0)
         {
@@ -87,10 +88,12 @@ provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider 
             }
         }
 
-      nd_meta_sink_add_sink (meta_sink, sink);
+      // 重复sink无需再次添加
+      // nd_meta_sink_add_sink (meta_sink, sink);
     }
   else
     {
+      g_info("matched sink num == 0");
       meta_sink = nd_meta_sink_new (sink);
       g_ptr_array_add (meta_provider->sinks, meta_sink);
       g_signal_emit_by_name (meta_provider, "sink-added", meta_sink);
@@ -103,7 +106,7 @@ provider_sink_removed_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvide
   g_autoptr(GPtrArray) sink_matches = NULL;
   g_autoptr(NdMetaSink) meta_sink = NULL;
   guint idx = 0;
-
+  // sink 是 p2p sink
   g_object_get (sink, "matches", &sink_matches, NULL);
   g_assert (sink_matches != NULL);
 
@@ -111,6 +114,7 @@ provider_sink_removed_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvide
    * Note that we really need to search for it rather than doing
    * a faster lookup, as sink that is removed may not be reporting
    * its matches correctly anymore. */
+  // 先找到对应的meta_sink
   g_assert (g_ptr_array_find_with_equal_func (meta_provider->sinks,
                                               sink,
                                               (GEqualFunc) nd_meta_sink_has_sink,
@@ -118,14 +122,23 @@ provider_sink_removed_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvide
 
   meta_sink = g_object_ref (g_ptr_array_index (meta_provider->sinks, idx));
   g_assert (meta_sink != NULL);
-  if (nd_meta_sink_remove_sink (meta_sink, sink))
+
+  gchar *sink_name = NULL;
+  g_object_get (meta_sink, "display-name", &sink_name, NULL);
+  gchar *hw_address = NULL;
+  g_object_get (meta_sink, "hw-address", &hw_address, NULL);
+  g_debug ("provider_sink_removed_cb: sink is %s %s", sink_name, hw_address);
+
+  if (nd_meta_sink_remove_sink (meta_sink, sink)) // meta_sink 中的 current_sink 已经被clear了
     {
+      g_debug ("meta sink is empty, remove it and we are done ");
       /* meta sink is empty, remove it and we are done */
       g_ptr_array_remove (meta_provider->sinks, meta_sink);
       g_signal_emit_by_name (meta_provider, "sink-removed", meta_sink);
 
       return;
     }
+  g_debug ("meta sink is not empty");
 }
 
 static void
@@ -214,7 +227,8 @@ nd_meta_provider_class_init (NdMetaProviderClass *klass)
 static void
 nd_meta_provider_init (NdMetaProvider *meta_provider)
 {
-  meta_provider->discover = TRUE;
+  // 默认不开启扫描，等待dbus扫描调用
+  meta_provider->discover = FALSE;
 
   meta_provider->sinks = g_ptr_array_new_with_free_func (g_object_unref);
   meta_provider->providers = g_ptr_array_new_with_free_func (g_object_unref);
@@ -233,6 +247,7 @@ nd_meta_provider_provider_iface_init (NdProviderIface *iface)
 static GList *
 nd_meta_provider_provider_get_sinks (NdProvider *provider)
 {
+  g_debug("call meta provider get sinks");
   NdMetaProvider *meta_provider = ND_META_PROVIDER (provider);
   GList *res = NULL;
 
@@ -277,6 +292,7 @@ void
 nd_meta_provider_add_provider (NdMetaProvider *meta_provider,
                                NdProvider     *provider)
 {
+  // provider 为 p2p-provider
   g_autoptr(GList) list = NULL;
   GList *item;
 
@@ -287,7 +303,7 @@ nd_meta_provider_add_provider (NdMetaProvider *meta_provider,
 
   g_signal_connect_object (provider,
                            "sink-added",
-                           (GCallback) provider_sink_added_cb,
+                           (GCallback) provider_sink_added_cb, // sink 为 p2p-sink
                            meta_provider,
                            G_CONNECT_SWAPPED);
 

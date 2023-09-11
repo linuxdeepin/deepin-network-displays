@@ -16,24 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
 #include "nd-wfd-p2p-provider.h"
+#include "deepin-network-displays-config.h"
 #include "nd-wfd-p2p-sink.h"
 
 struct _NdWFDP2PProvider
 {
-  GObject    parent_instance;
+  GObject parent_instance;
 
   GPtrArray *sinks;
 
-  NMClient  *nm_client;
-  NMDevice  *nm_device;
+  NMClient *nm_client;
+  NMDevice *nm_device;
 
-  gboolean   discover;
-  guint      p2p_find_source_id;
+  gboolean discover;
+  guint p2p_find_source_id;
 };
 
-enum {
+enum
+{
   PROP_CLIENT = 1,
   PROP_DEVICE,
 
@@ -43,23 +44,22 @@ enum {
 };
 
 static void nd_wfd_p2p_provider_provider_iface_init (NdProviderIface *iface);
-static GList * nd_wfd_p2p_provider_provider_get_sinks (NdProvider *provider);
+static GList *nd_wfd_p2p_provider_provider_get_sinks (NdProvider *provider);
 
 static void peer_added_cb (NdWFDP2PProvider *provider,
-                           NMWifiP2PPeer    *peer,
-                           NMDevice         *device);
+                           NMWifiP2PPeer *peer,
+                           NMDevice *device);
 
-G_DEFINE_TYPE_EXTENDED (NdWFDP2PProvider, nd_wfd_p2p_provider, G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (ND_TYPE_PROVIDER,
-                                               nd_wfd_p2p_provider_provider_iface_init);
-                       )
+G_DEFINE_TYPE_EXTENDED (NdWFDP2PProvider, nd_wfd_p2p_provider, G_TYPE_OBJECT, 0, G_IMPLEMENT_INTERFACE (ND_TYPE_PROVIDER, nd_wfd_p2p_provider_provider_iface_init);)
 
-static GParamSpec * props[PROP_LAST] = { NULL, };
+static GParamSpec *props[PROP_LAST] = {
+  NULL,
+};
 
 static void
 on_peer_wfd_ie_notify_cb (NdWFDP2PProvider *provider,
-                          GParamSpec       *pspec,
-                          NMWifiP2PPeer    *peer)
+                          GParamSpec *pspec,
+                          NMWifiP2PPeer *peer)
 {
   g_debug ("WFDP2PProvider: WFDIEs for ignored peer \"%s\" (%s) changed, trying to re-add",
            nm_wifi_p2p_peer_get_name (peer),
@@ -106,17 +106,31 @@ peer_added_cb (NdWFDP2PProvider *provider, NMWifiP2PPeer *peer, NMDevice *device
 static void
 peer_removed_cb (NdWFDP2PProvider *provider, NMWifiP2PPeer *peer, NMDevice *device)
 {
-  g_debug ("WFDP2PProvider: Peer removed");
-
+  g_autofree gchar *peer_name;
+  g_object_get (peer, "name", &peer_name, NULL);
+  g_debug ("WFDP2PProvider: Peer removed %s", peer_name);
+  const gchar *peer_hw_address = nm_wifi_p2p_peer_get_hw_address (peer);
+  g_debug ("peer_hw_address: %s", peer_hw_address);
   /* Otherwise we may see properties changing to NULL before the object is destroyed. */
   g_signal_handlers_disconnect_by_func (peer, on_peer_wfd_ie_notify_cb, provider);
 
   for (gint i = 0; i < provider->sinks->len; i++)
     {
-      g_autoptr(NdWFDP2PSink) sink = g_object_ref (g_ptr_array_index (provider->sinks, i));
+      g_autoptr (NdWFDP2PSink) sink = g_object_ref (g_ptr_array_index (provider->sinks, i));
 
       if (nd_wfd_p2p_provider_get_device (provider) != device)
         continue;
+
+      gchar *sink_hw_address = NULL;
+      g_object_get (sink, "hw-address", &sink_hw_address, NULL);
+      g_debug ("sink_hw_address: %s", sink_hw_address);
+
+      if (!g_str_equal (sink_hw_address, peer_hw_address))
+        continue;
+
+      g_autofree gchar *sink_name = NULL;
+      g_object_get (sink, "display-name", &sink_name, NULL);
+      g_debug ("WFDP2PProvider: remove sink is %s %s", sink_name, sink_hw_address);
 
       g_ptr_array_remove_index (provider->sinks, i);
       g_signal_emit_by_name (provider, "sink-removed", sink);
@@ -125,9 +139,9 @@ peer_removed_cb (NdWFDP2PProvider *provider, NMWifiP2PPeer *peer, NMDevice *devi
 }
 
 static void
-nd_wfd_p2p_provider_get_property (GObject    *object,
-                                  guint       prop_id,
-                                  GValue     *value,
+nd_wfd_p2p_provider_get_property (GObject *object,
+                                  guint prop_id,
+                                  GValue *value,
                                   GParamSpec *pspec)
 {
   NdWFDP2PProvider *provider = ND_WFD_P2P_PROVIDER (object);
@@ -157,7 +171,7 @@ nd_wfd_p2p_provider_get_property (GObject    *object,
 static void
 log_start_find_error (GObject *source, GAsyncResult *res, gpointer user_data)
 {
-  g_autoptr(GError) error = NULL;
+  g_autoptr (GError) error = NULL;
   NMDeviceWifiP2P *p2p_dev = NM_DEVICE_WIFI_P2P (source);
 
   if (!nm_device_wifi_p2p_start_find_finish (p2p_dev, res, &error))
@@ -185,7 +199,7 @@ discovery_start_stop (NdWFDP2PProvider *provider, NMDeviceState state)
       g_debug ("WFDP2PProvider: Starting P2P discovery.");
       nm_device_wifi_p2p_start_find (NM_DEVICE_WIFI_P2P (provider->nm_device), NULL, NULL, log_start_find_error, NULL);
       if (!provider->p2p_find_source_id)
-        provider->p2p_find_source_id = g_timeout_add_seconds (20, device_restart_find_timeout, provider);
+        provider->p2p_find_source_id = g_timeout_add_seconds (20, device_restart_find_timeout, provider); // TODO 应该不再需求，又前端调用刷新
     }
   else
     {
@@ -206,11 +220,11 @@ discovery_start_stop (NdWFDP2PProvider *provider, NMDeviceState state)
 }
 
 static void
-device_state_changed_cb (NdWFDP2PProvider   *provider,
-                         NMDeviceState       new_state,
-                         NMDeviceState       old_state,
+device_state_changed_cb (NdWFDP2PProvider *provider,
+                         NMDeviceState new_state,
+                         NMDeviceState old_state,
                          NMDeviceStateReason reason,
-                         NMDevice           *device)
+                         NMDevice *device)
 {
   g_debug ("WFDP2PProvider: Device state changed. It is now %i. Reason: %i", new_state, reason);
 
@@ -218,10 +232,10 @@ device_state_changed_cb (NdWFDP2PProvider   *provider,
 }
 
 static void
-nd_wfd_p2p_provider_set_property (GObject      *object,
-                                  guint         prop_id,
+nd_wfd_p2p_provider_set_property (GObject *object,
+                                  guint prop_id,
                                   const GValue *value,
-                                  GParamSpec   *pspec)
+                                  GParamSpec *pspec)
 {
   NdWFDP2PProvider *provider = ND_WFD_P2P_PROVIDER (object);
   const GPtrArray *peers;
@@ -307,16 +321,16 @@ nd_wfd_p2p_provider_class_init (NdWFDP2PProviderClass *klass)
   object_class->finalize = nd_wfd_p2p_provider_finalize;
 
   props[PROP_CLIENT] =
-    g_param_spec_object ("client", "Client",
-                         "The NMClient used to find the sink.",
-                         NM_TYPE_CLIENT,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+      g_param_spec_object ("client", "Client",
+                           "The NMClient used to find the sink.",
+                           NM_TYPE_CLIENT,
+                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
   props[PROP_DEVICE] =
-    g_param_spec_object ("device", "Device",
-                         "The NMDevice the sink was found on.",
-                         NM_TYPE_DEVICE,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+      g_param_spec_object ("device", "Device",
+                           "The NMDevice the sink was found on.",
+                           NM_TYPE_DEVICE,
+                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, PROP_LAST, props);
 
@@ -330,8 +344,8 @@ nd_wfd_p2p_provider_init (NdWFDP2PProvider *provider)
 }
 
 /******************************************************************
-* NdProvider interface implementation
-******************************************************************/
+ * NdProvider interface implementation
+ ******************************************************************/
 
 static void
 nd_wfd_p2p_provider_provider_iface_init (NdProviderIface *iface)
@@ -352,8 +366,8 @@ nd_wfd_p2p_provider_provider_get_sinks (NdProvider *provider)
 }
 
 /******************************************************************
-* NdWFDP2PProvider public functions
-******************************************************************/
+ * NdWFDP2PProvider public functions
+ ******************************************************************/
 
 /**
  * nd_wfd_p2p_provider_get_client
@@ -382,7 +396,6 @@ nd_wfd_p2p_provider_get_device (NdWFDP2PProvider *provider)
 {
   return provider->nm_device;
 }
-
 
 NdWFDP2PProvider *
 nd_wfd_p2p_provider_new (NMClient *client, NMDevice *device)

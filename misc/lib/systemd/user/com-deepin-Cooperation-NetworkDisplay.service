@@ -1,0 +1,8 @@
+[Unit]
+Description=Deepin network display Daemon
+After=dbus.service graphical-session.target
+
+[Service]
+Type=dbus
+BusName=com.deepin.Cooperation.NetworkDisplay
+ExecStart=/usr/bin/deepin-network-display-daemon

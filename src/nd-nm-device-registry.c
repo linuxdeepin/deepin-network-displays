@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "NetworkManager.h"
 #include "nd-nm-device-registry.h"
 #include "nd-wfd-p2p-provider.h"

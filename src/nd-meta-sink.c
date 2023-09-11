@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-meta-sink.h"
 
 struct _NdMetaSink
@@ -33,6 +33,8 @@ enum {
 
   PROP_DISPLAY_NAME,
   PROP_MATCHES,
+  PROP_HW_ADDRESS,
+  PROP_STRENGTH,
   PROP_PRIORITY,
   PROP_STATE,
   PROP_MISSING_VIDEO_CODEC,
@@ -61,6 +63,7 @@ nd_meta_sink_notify_sink_cb (NdMetaSink *meta_sink, GParamSpec *pspec, NdSink *s
     g_object_notify (G_OBJECT (meta_sink), pspec->name);
 }
 
+// TODO
 static void
 nd_meta_sink_update (NdMetaSink *meta_sink)
 {
@@ -155,7 +158,7 @@ nd_meta_sink_get_property (GObject    *object,
                           "matches", &sub_matches,
                           NULL);
 
-            for (gint j = 0; j < sub_matches->len; j++)
+            for (gint j = 0; j < sub_matches->len; j++) // 如果是p2p-sink，因为使用name作为match字段，那么len只会等于1
               if (!g_ptr_array_find_with_equal_func (res, g_ptr_array_index (sub_matches, j), g_str_equal, NULL))
                 g_ptr_array_add (res, g_strdup (g_ptr_array_index (sub_matches, j)));
           }
@@ -163,6 +166,20 @@ nd_meta_sink_get_property (GObject    *object,
         g_value_take_boxed (value, g_steal_pointer (&res));
         break;
       }
+
+    case PROP_HW_ADDRESS:
+      if (meta_sink->current_sink)
+        g_object_get_property (G_OBJECT (meta_sink->current_sink), pspec->name, value);
+      else
+        g_value_set_string (value, "");
+      break;
+
+    case PROP_STRENGTH:
+      if (meta_sink->current_sink)
+        g_object_get_property (G_OBJECT (meta_sink->current_sink), pspec->name, value);
+      else
+        g_value_set_int (value, 0);
+      break;
 
     case PROP_PRIORITY:
       if (meta_sink->current_sink)
@@ -222,6 +239,7 @@ nd_meta_sink_set_property (GObject      *object,
 static void
 nd_meta_sink_finalize (GObject *object)
 {
+  g_info ("meta sink finalize");
   NdMetaSink *meta_sink = ND_META_SINK (object);
 
   g_ptr_array_free (meta_sink->sinks, TRUE);
@@ -259,6 +277,8 @@ nd_meta_sink_class_init (NdMetaSinkClass *klass)
 
   g_object_class_override_property (object_class, PROP_DISPLAY_NAME, "display-name");
   g_object_class_override_property (object_class, PROP_MATCHES, "matches");
+  g_object_class_override_property (object_class, PROP_HW_ADDRESS, "hw-address");
+  g_object_class_override_property (object_class, PROP_STRENGTH, "strength");
   g_object_class_override_property (object_class, PROP_PRIORITY, "priority");
   g_object_class_override_property (object_class, PROP_STATE, "state");
   g_object_class_override_property (object_class, PROP_MISSING_VIDEO_CODEC, "missing-video-codec");
@@ -329,7 +349,7 @@ void
 nd_meta_sink_add_sink (NdMetaSink *meta_sink,
                        NdSink     *sink)
 {
-  g_assert (!g_ptr_array_find (meta_sink->sinks, sink, NULL));
+  g_assert (!g_ptr_array_find (meta_sink->sinks, sink, NULL)); // 没有找到相同的sink，才继续添加
 
   g_ptr_array_add (meta_sink->sinks, g_object_ref (sink));
 

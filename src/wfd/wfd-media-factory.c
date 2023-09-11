@@ -1,4 +1,4 @@
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "wfd-media-factory.h"
 #include "wfd-media.h"
 

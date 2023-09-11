@@ -19,7 +19,7 @@
 #include <avahi-gobject/ga-service-browser.h>
 #include <avahi-gobject/ga-service-resolver.h>
 #include <avahi-common/address.h>
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-wfd-mice-provider.h"
 #include "nd-sink.h"
 #include "nd-wfd-mice-sink.h"

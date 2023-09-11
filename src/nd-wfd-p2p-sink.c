@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-wfd-p2p-sink.h"
 #include "wfd/wfd-server.h"
 #include "wfd/wfd-client.h"
@@ -39,6 +39,7 @@ struct _NdWFDP2PSink
   GStrv               missing_video_codec;
   GStrv               missing_audio_codec;
   char               *missing_firewall_zone;
+  gchar              *hw_address;
 
   WfdServer          *server;
   guint               server_source_id;
@@ -51,6 +52,8 @@ enum {
 
   PROP_DISPLAY_NAME,
   PROP_MATCHES,
+  PROP_HW_ADDRESS,
+  PROP_STRENGTH,
   PROP_PRIORITY,
   PROP_STATE,
   PROP_MISSING_VIDEO_CODEC,
@@ -130,20 +133,29 @@ nd_wfd_p2p_sink_get_property (GObject    *object,
 
     case PROP_MATCHES:
       {
+        // TODO name 不是唯一标识，为什么不用 hw_address
         g_autoptr(GPtrArray) res = NULL;
-        const char *name;
+        const char *hw_addr;
         res = g_ptr_array_new_with_free_func (g_free);
 
         /* Should not usually happen, but it can if something is holding on
          * to the sink. So guard against NULL being returned if the peer
          * object is not valid anymore. */
-        name = nm_wifi_p2p_peer_get_name (sink->nm_peer);
-        if (name)
-          g_ptr_array_add (res, g_strdup (name));
+        hw_addr = nm_wifi_p2p_peer_get_hw_address (sink->nm_peer);
+        if (hw_addr)
+          g_ptr_array_add (res, g_strdup (hw_addr));
 
         g_value_take_boxed (value, g_steal_pointer (&res));
         break;
       }
+    case PROP_HW_ADDRESS:
+      {
+        g_value_set_string (value, g_strdup (sink->hw_address));
+        break;
+      }
+    case PROP_STRENGTH:
+      g_value_set_int (value,nm_wifi_p2p_peer_get_strength (sink->nm_peer));
+      break;
 
     case PROP_PRIORITY:
       g_value_set_int (value, 100);
@@ -200,12 +212,20 @@ nd_wfd_p2p_sink_set_property (GObject      *object,
     case PROP_PEER:
       g_assert (sink->nm_peer == NULL);
       sink->nm_peer = g_value_dup_object (value);
-
+      const char *hw_addr = nm_wifi_p2p_peer_get_hw_address (sink->nm_peer);
+      sink->hw_address = g_strdup (hw_addr);
+      // 监听peer所有的属性改变信号
       g_signal_connect_object (sink->nm_peer,
                                "notify",
                                (GCallback) peer_notify_cb,
                                sink,
                                G_CONNECT_SWAPPED);
+      // TODO 监听某一个属性
+      g_signal_connect_object (sink->nm_peer,
+                              "notify::" NM_WIFI_P2P_PEER_STRENGTH,
+                              (GCallback) peer_notify_cb,
+                              sink,
+                              G_CONNECT_SWAPPED);
       break;
 
     default:
@@ -266,6 +286,8 @@ nd_wfd_p2p_sink_class_init (NdWFDP2PSinkClass *klass)
 
   g_object_class_override_property (object_class, PROP_DISPLAY_NAME, "display-name");
   g_object_class_override_property (object_class, PROP_MATCHES, "matches");
+  g_object_class_override_property (object_class, PROP_HW_ADDRESS, "hw-address");
+  g_object_class_override_property (object_class, PROP_STRENGTH, "strength");
   g_object_class_override_property (object_class, PROP_PRIORITY, "priority");
   g_object_class_override_property (object_class, PROP_STATE, "state");
   g_object_class_override_property (object_class, PROP_MISSING_VIDEO_CODEC, "missing-video-codec");
@@ -468,7 +490,7 @@ firewall_ready (GObject      *source_object,
 
   /* Static WFD IEs describing a source with the RTSP server on port 7236. */
   wfd_ies = g_bytes_new_static ("\x00\x00\x06\x00\x90\x1c\x44\x00\xc8", 9);
-
+  // 1c44 就是 7236
   connection = nm_simple_connection_new ();
 
   general_setting = nm_setting_connection_new ();
@@ -496,7 +518,7 @@ firewall_ready (GObject      *source_object,
                 NM_SETTING_IP_CONFIG_NEVER_DEFAULT, TRUE,
                 NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
                 NULL);
-
+  g_debug ("NdWfdP2PSink: nm_client_add_and_activate_connection2");
   nm_client_add_and_activate_connection2 (self->nm_client,
                                           connection,
                                           self->nm_device,

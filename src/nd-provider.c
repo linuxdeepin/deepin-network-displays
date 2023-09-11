@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-provider.h"
 
 typedef NdProviderIface NdProviderInterface;
@@ -81,6 +81,7 @@ nd_provider_default_init (NdProviderIface *iface)
 GList *
 nd_provider_get_sinks (NdProvider *provider)
 {
+  // provider 为 p2p provider
   NdProviderIface *iface = ND_PROVIDER_GET_IFACE (provider);
 
   return iface->get_sinks (provider);

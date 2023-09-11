@@ -1,0 +1,35 @@
+Source: deepin-network-displays
+Section: utils
+Priority: optional
+Maintainer: Deepin Sysdev <sysdev@deepin.com>
+Rules-Requires-Root: no
+Build-Depends: debhelper-compat (= 12),
+               libavahi-client-dev,
+               libavahi-gobject-dev,
+               libgstreamer-plugins-base1.0-dev,
+               libgstreamer1.0-dev ( >= 1.14),
+               libgstrtspserver-1.0-dev,
+               libgtk-3-dev (>= 3.22),
+               libnm-dev (>= 1.15),
+               libpulse-dev,
+               meson (>= 0.46.1)
+Standards-Version: 4.6.1
+Homepage: https://gerrit.uniontech.com/admin/repos/deepin-network-displays
+
+Package: deepin-network-displays
+Architecture: any
+Depends:
+    network-manager,
+    wpasupplicant,
+    gstreamer1.0-plugins-ugly,
+    ${misc:Depends},
+    ${shlibs:Depends},
+    ${dist:Depends},
+Recommends:
+    xdg-desktop-portal,
+    gstreamer1.0-pipewire,
+Description: miracast application for the Deepin desktop
+ This application allows you to stream your display and
+ audio to other devices via Wi-Fi (aka miracast).
+ .
+ Note: wpasupplicant is required, iwd won't work.

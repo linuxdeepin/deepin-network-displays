@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-wfd-mice-sink.h"
 #include "wfd/wfd-client.h"
 #include "wfd/wfd-media-factory.h"
@@ -51,6 +51,8 @@ enum {
 
   PROP_DISPLAY_NAME,
   PROP_MATCHES,
+  PROP_HW_ADDRESS,
+  PROP_STRENGTH,
   PROP_PRIORITY,
   PROP_STATE,
   PROP_MISSING_VIDEO_CODEC,

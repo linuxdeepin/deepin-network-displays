@@ -1,7 +1,7 @@
 
 subdir('wfd')
 
-gnome_nd_sources = [
+deepin_nd_sources = [
   'main.c',
   'nd-window.c',
   'nd-codec-install.c',
@@ -21,16 +21,18 @@ gnome_nd_sources = [
   'nd-dummy-wfd-sink.c',
   'nd-screencast-portal.c',
   'nd-pulseaudio.c',
+  'nd-dbus-manager.c',
+  'nd-dbus-sink.c',
 ]
 
 enum_headers = files('nd-sink.h')
 
-gnome_nd_sources += gnome.mkenums_simple(
+deepin_nd_sources += gnome.mkenums_simple(
   'nd-enum-types',
   sources: enum_headers,
 )
 
-gnome_nd_deps = [
+deepin_nd_deps = [
   dependency('avahi-client'),
   dependency('avahi-gobject'),
   dependency('gio-2.0', version: '>= 2.50'),
@@ -43,16 +45,16 @@ gnome_nd_deps = [
   dependency('libpulse-mainloop-glib'),
 ]
 
-gnome_nd_deps += wfd_server_deps
+deepin_nd_deps += wfd_server_deps
 
-gnome_nd_sources += gnome.compile_resources('gnome-nd-resources',
+deepin_nd_sources += gnome.compile_resources('deepin-nd-resources',
   'gnome-network-displays.gresource.xml',
   c_name: 'gnome_screencast'
 )
 
-executable('gnome-network-displays',
-  gnome_nd_sources,
-  dependencies: gnome_nd_deps,
+executable('deepin-network-display-daemon',
+  deepin_nd_sources,
+  dependencies: deepin_nd_deps,
   install: true,
   link_with: wfd_server,
 )

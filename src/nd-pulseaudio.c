@@ -4,7 +4,7 @@
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (pa_proplist, pa_proplist_free)
 
-#define ND_PA_SINK "gnome_network_displays"
+#define ND_PA_SINK "deepin_network_displays"
 #define ND_PA_MONITOR ND_PA_SINK ".monitor"
 
 struct _NdPulseaudio
@@ -137,6 +137,7 @@ on_pa_nd_sink_got_info (pa_context         *c,
       g_debug ("NdPulseaudio: Error querying sink info");
       g_debug ("NdPulseaudio: Got a sink info for the expected name");
 
+      self->null_module_idx = i->owner_module;
       return_idle_success (self->init_task);
       g_clear_object (&self->init_task);
       return;
@@ -218,8 +219,8 @@ nd_pulseaudio_async_initable_init_async (GAsyncInitable     *initable,
   self->mainloop_api = pa_glib_mainloop_get_api (self->mainloop);
 
   proplist = pa_proplist_new ();
-  pa_proplist_sets (proplist, PA_PROP_APPLICATION_NAME, "GNOME Network Displays");
-  pa_proplist_sets (proplist, PA_PROP_APPLICATION_ID, "org.gnome.NetworkDisplays");
+  pa_proplist_sets (proplist, PA_PROP_APPLICATION_NAME, "Deepin Network Displays");
+  pa_proplist_sets (proplist, PA_PROP_APPLICATION_ID, "com.deepin.Cooperation.Application");
   /* pa_proplist_sets (proplist, PA_PROP_APPLICATION_ICON_NAME, ); */
 
   self->context = pa_context_new_with_proplist (self->mainloop_api, NULL, proplist);
@@ -317,10 +318,17 @@ nd_pulseaudio_get_source (NdPulseaudio *self)
 
   g_object_set (src,
                 "device", ND_PA_MONITOR,
-                "client-name", "GNOME Network Displays Audio Grabber",
+                "client-name", "Deepin Network Displays Audio Grabber",
                 "do-timestamp", TRUE,
                 "server", pa_context_get_server (self->context),
                 NULL);
 
   return g_steal_pointer (&src);
+}
+
+void
+nd_pulseaudio_unload_module (NdPulseaudio *self, pa_context_success_cb_t cb, void *userdata)
+{
+  pa_operation *operation = pa_context_unload_module (self->context, self->null_module_idx, cb, userdata);
+  pa_operation_unref (operation);
 }

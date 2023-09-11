@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-sink.h"
 #include <gst/gst.h>
 
@@ -52,6 +52,21 @@ nd_sink_default_init (NdSinkIface *iface)
                                                            "Match strings",
                                                            "One or more strings that uniquely identify the sink. This is used for de-duplication and should never change over the lifetime of the object.",
                                                            G_TYPE_PTR_ARRAY,
+                                                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_interface_install_property(iface,
+                                      g_param_spec_string ("hw-address",
+                                                          "hardware address",
+                                                          "xxx",
+                                                          NULL,
+                                                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+  g_object_interface_install_property(iface,
+                                      g_param_spec_int ("strength",
+                                                           "sink strength",
+                                                           "xxx",
+                                                           G_MININT,
+                                                           100,
+                                                           0,
                                                            G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
   g_object_interface_install_property (iface,

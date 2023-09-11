@@ -19,7 +19,7 @@
 #include <avahi-gobject/ga-client.h>
 #include <avahi-gobject/ga-service-browser.h>
 #include <glib/gi18n.h>
-#include "gnome-network-displays-config.h"
+#include "deepin-network-displays-config.h"
 #include "nd-window.h"
 #include "nd-sink-list.h"
 #include "nd-sink-row.h"
@@ -214,7 +214,7 @@ sink_notify_state_cb (NdWindow *self, GParamSpec *pspec, NdSink *sink)
       g_object_set (self->meta_provider, "discover", TRUE, NULL);
 
       g_ptr_array_set_size (self->sink_property_bindings, 0);
-
+      // TODO 有关stream_sink的设计思路还不清楚，自研部分应该不涉及这部分操作;
       g_signal_handlers_disconnect_by_data (self->stream_sink, self);
       g_clear_object (&self->stream_sink);
       break;
@@ -274,7 +274,7 @@ find_sink_list_row_activated_cb (NdWindow *self, NdSinkRow *row, NdSinkList *sin
 
   /* We might have moved into the error state in the meantime. */
   sink_notify_state_cb (self, NULL, self->stream_sink);
-
+  // g_object_bind_property 单项数据绑定
   g_ptr_array_add (self->sink_property_bindings,
                    g_object_ref (g_object_bind_property (self->stream_sink,
                                                          "missing-video-codec",
@@ -512,6 +512,7 @@ gnome_nd_window_init (NdWindow *self)
   self->nm_device_registry = nd_nm_device_registry_new (self->meta_provider);
   nd_sink_list_set_provider (self->find_sink_list, ND_PROVIDER (self->meta_provider));
 
+  /*临时屏蔽
   if (g_strcmp0 (g_getenv ("NETWORK_DISPLAYS_DUMMY"), "1") == 0)
     {
       g_autoptr(NdDummyProvider) dummy_provider = NULL;
@@ -520,7 +521,8 @@ gnome_nd_window_init (NdWindow *self)
       dummy_provider = nd_dummy_provider_new ();
       nd_meta_provider_add_provider (self->meta_provider, ND_PROVIDER (dummy_provider));
     }
-
+*/
+  // TODO 在 nd-dbus-sink的 connect method_call 操作中处理
   g_signal_connect_object (self->find_sink_list,
                            "row-activated",
                            (GCallback) find_sink_list_row_activated_cb,
@@ -529,6 +531,7 @@ gnome_nd_window_init (NdWindow *self)
 
   self->cancellable = g_cancellable_new ();
 
+  // TODO 类似按钮的监听操作统一放到nd-dbus-sink中处理
   /* All of these buttons just stop the stream, which will return us
    * to the DISCONNECTED state and the selection page. */
   g_signal_connect_object (self->connect_cancel,
@@ -563,5 +566,6 @@ gnome_nd_window_init (NdWindow *self)
                                nd_pulseaudio_init_async_cb,
                                self);
 
+  // TODO 不知道是否需要
   self->sink_property_bindings = g_ptr_array_new_full (0, (GDestroyNotify) g_binding_unbind);
 }

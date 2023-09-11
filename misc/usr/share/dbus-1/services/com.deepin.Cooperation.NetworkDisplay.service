@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.deepin.Cooperation.NetworkDisplay
+Exec=/usr/bin/deepin-network-display-daemon
+SystemdService=com-deepin-Cooperation-NetworkDisplay.service
