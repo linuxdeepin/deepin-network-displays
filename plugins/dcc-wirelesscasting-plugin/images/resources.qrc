@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icons/deepin/builtin">
+        <file>icons/dcc_refresh_12px.svg</file>
+        <file>icons/monitor_16px.svg</file>
+    </qresource>
+</RCC>

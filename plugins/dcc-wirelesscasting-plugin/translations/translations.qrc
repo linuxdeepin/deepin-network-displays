@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/translations">
+        <file>Casting_en_US.ts</file>
+    </qresource>
+</RCC>
