@@ -7,7 +7,6 @@
 #include "nd-dbus-sink.h"
 #include "nd-meta-provider.h"
 #include "nd-nm-device-registry.h"
-#include "nd-pulseaudio.h"
 #include "nd-sink.h"
 #include "wfd/wfd-media-factory.h"
 

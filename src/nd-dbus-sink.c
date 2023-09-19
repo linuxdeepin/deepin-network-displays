@@ -7,6 +7,7 @@
 #include "nd-dbus-manager.h"
 
 #include <gio/gio.h>
+#include <glib/gi18n.h>
 
 struct _NdDbusSink
 {
@@ -346,7 +347,7 @@ nd_dbus_sink_init (NdDbusSink *self)
                                                       NULL,
                                                       "org.freedesktop.Notifications",
                                                       "/org/freedesktop/Notifications",
-                                                      "com.deepin.dde.Notification",
+                                                      "org.freedesktop.Notifications",
                                                       NULL,
                                                       &error);
   if (!self->notify_proxy)
@@ -453,7 +454,7 @@ nd_dbus_screencast_portal_init_async_cb (GObject *source_object,
             }
           D_ND_WARNING ("Falling back to X11! You need to fix your setup to avoid issues (XDG Portals and/or mutter screencast support)!");
           self->x11 = TRUE;
-          init_pulse_async(self);
+          init_pulse_async (self);
         }
       g_object_unref (source_object);
       return;
@@ -463,7 +464,7 @@ nd_dbus_screencast_portal_init_async_cb (GObject *source_object,
   self->x11 = FALSE;
   self->is_portal_init_running = FALSE;
   self->portal = ND_SCREENCAST_PORTAL (source_object);
-  init_pulse_async(self);
+  init_pulse_async (self);
 }
 
 // from find_sink_list_row_activated_cb 连接设备
@@ -578,7 +579,7 @@ sink_create_video_source_cb (NdDbusSink *self, NdSink *sink)
   if (self->x11)
     {
       // x11下需要处理多屏场景，先判断屏幕数量，再获取主屏的坐标和尺寸，计算后设置给ximagesrc，达到只获取主屏显示内容的效果。
-      guint screen_size = 0;
+      guint screen_count = 0;
       gint16 start_x = 0;
       gint16 start_y = 0;
       guint16 width = 0;
@@ -594,11 +595,11 @@ sink_create_video_source_cb (NdDbusSink *self, NdSink *sink)
               g_variant_get (property_value, "ao", &monitor_iter);
               while (g_variant_iter_loop (monitor_iter, "&o", NULL))
                 {
-                  screen_size++;
+                  screen_count++;
                 }
             }
 
-          if (screen_size >= 2)
+          if (screen_count >= 2)
             {
               property_value = g_dbus_proxy_get_cached_property (self->display_proxy, "PrimaryRect");
               if (property_value)
@@ -624,13 +625,13 @@ sink_create_video_source_cb (NdDbusSink *self, NdSink *sink)
     src = nd_screencast_portal_get_source (self->portal);
 
   if (!src)
-    g_error ("Error creating video source element, likely a missing dependency!");
+    D_ND_WARNING("Error creating video source element, likely a missing dependency!");
 
   gst_bin_add (bin, src);
 
   dst = gst_element_factory_make ("intervideosink", "inter video sink");
   if (!dst)
-    g_error ("Error creating intervideosink, missing dependency!");
+    D_ND_WARNING ("Error creating intervideosink, missing dependency!");
   g_object_set (dst,
                 "channel", "nd-inter-video",
                 "max-lateness", (gint64) -1,
@@ -673,7 +674,7 @@ static void
 sink_notify_state_cb (NdDbusSink *self, GParamSpec *pspec, NdSink *sink)
 {
   NdSinkState state = ND_SINK_STATE_DISCONNECTED;
-
+  gchar *msg = NULL;
   g_object_get (sink, "state", &state, NULL);
   D_ND_INFO ("Got state change notification from streaming sink to state %s", g_enum_to_string (ND_TYPE_SINK_STATE, state));
   set_prop_status (self, state);
@@ -682,7 +683,8 @@ sink_notify_state_cb (NdDbusSink *self, GParamSpec *pspec, NdSink *sink)
     case ND_SINK_STATE_DISCONNECTED:
     case ND_SINK_STATE_ERROR:
       handle_cancel (self);
-      send_notify (self, "error");
+      msg = g_strdup_printf (_ ("Failed cast the screen to a wireless monitor %s"), self->name);
+      send_notify (self, msg);
       break;
     case ND_SINK_STATE_ENSURE_FIREWALL:
       break;
@@ -693,7 +695,8 @@ sink_notify_state_cb (NdDbusSink *self, GParamSpec *pspec, NdSink *sink)
     case ND_SINK_STATE_WAIT_STREAMING:
       break;
     case ND_SINK_STATE_STREAMING:
-      send_notify (self, "streaming");
+      msg = g_strdup_printf (_ ("Cast the screen to a wireless monitor %s"), self->name);
+      send_notify (self, msg);
       break;
     default:
       break;
