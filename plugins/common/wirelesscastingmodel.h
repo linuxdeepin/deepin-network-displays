@@ -1,8 +1,6 @@
 #ifndef WIRELESSCASTINGMODEL_H
 #define WIRELESSCASTINGMODEL_H
 
-//#include <ddbusinterface.h>
-
 #include <QObject>
 #include <QDBusMessage>
 
@@ -80,6 +78,8 @@ public:
     const QString curMonitorName();
 public slots:
     void handleMonitorStateCanged(const Monitor::NdSinkState state);
+    void onDBusNameOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner);
+
 signals:
     void addMonitor(const QString &path, Monitor *monitor);
     void removeMonitor(const QString &path);
@@ -100,6 +100,7 @@ private:
     void updateWarningInfo(const QVariant &var);
     void checkState();
     void prepareDbus();
+    void resetNetworkDisplayData();
 
     Dtk::Core::DDBusInterface *m_dbus;
     Dtk::Core::DDBusInterface *m_dbusNM;

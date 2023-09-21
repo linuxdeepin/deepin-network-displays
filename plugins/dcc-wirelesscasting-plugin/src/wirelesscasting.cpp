@@ -11,6 +11,7 @@
 #include <DPaletteHelper>
 #include <DIconButton>
 #include <DCommandLinkButton>
+#include <DConfig>
 
 #include <QPushButton>
 #include <QBoxLayout>
@@ -21,6 +22,7 @@
 
 using namespace dcc::widgets;
 DWIDGET_USE_NAMESPACE
+DCORE_USE_NAMESPACE
 
 MonitorItem::MonitorItem(const QString &text, Monitor *monitor, DListView *parent)
     : DStandardItem(text)
@@ -92,7 +94,7 @@ void MonitorItem::init()
         this->setText(name);
     });
     connect(m_monitor, &Monitor::stateChanged, this, &MonitorItem::stateChanged);
-    setSizeHint(QSize(-1, 30));
+    setSizeHint(QSize(-1, 40));
 
     stateChanged(m_monitor->state());
 }
@@ -104,12 +106,12 @@ void MonitorItem::stateChanged(const Monitor::NdSinkState state)
     case Monitor::ND_SINK_STATE_ERROR:
         m_connectingState = false;
         m_connectAction->setVisible(false);
-        setSizeHint(QSize(-1, 30));
+        setSizeHint(QSize(-1, 50));
         break;
     default:
         m_connectingState = true;
         m_connectAction->setVisible(true);
-        setSizeHint(QSize(-1, 70));
+        setSizeHint(QSize(-1, 90));
         break;
     }
 }
@@ -122,9 +124,10 @@ WirelessCasting::WirelessCasting(WirelessCastingModel *model, QWidget *parent)
     , m_monitorsListView(new DListView(this))
     , m_statePanel(new StatePanel(m_model, this))
     , m_lastConnMonitor(nullptr)
+    , m_cfgShowCasting(true)
+    , m_cfgEnabled(true)
 {
     initUI();
-    onStateChanged(m_model->state());
     initMonitors();
     qRegisterMetaType<WirelessCastingModel::CastingState>("WirelessCastingModel::CastingState");
     connect(m_model, &WirelessCastingModel::stateChanged, this, &WirelessCasting::onStateChanged);
@@ -134,15 +137,32 @@ WirelessCasting::WirelessCasting(WirelessCastingModel *model, QWidget *parent)
     connect(m_model, &WirelessCastingModel::stateChanged, this, [this] (WirelessCastingModel::CastingState state) {
         Q_EMIT castingChanged(state == WirelessCastingModel::Connected);
     });
+    // config
+    DConfig *config = DConfig::create("org.deepin.dde.control-center", "org.deepin.dde.control-center.casting", QString(), this);
+    m_cfgShowCasting = config->value("showCasting").toString() != "Hidden";
+    m_cfgEnabled = config->value("showCasting").toString() != "Disabled";
+
+    connect(config, &DConfig::valueChanged, this, [ = ] (const QString &key) {
+        if (key == "showCasting") {
+            m_cfgShowCasting = config->value("showCasting").toString() != "Hidden";
+            m_cfgEnabled = config->value("showCasting").toString() != "Disabled";
+            onStateChanged(m_model->state());
+        }
+    });
+    onStateChanged(m_model->state());
 }
 
 void WirelessCasting::onStateChanged(WirelessCastingModel::CastingState state)
 {
+    setEnabled(m_cfgEnabled);
     if (WirelessCastingModel::NoWirelessDevice == state) {
         hide();
         return;
     } else {
-        show();
+        if (m_cfgShowCasting)
+            show();
+        else
+            hide();
     }
 
     if (WirelessCastingModel::List == state){
@@ -275,10 +295,10 @@ StatePanel::StatePanel(WirelessCastingModel *model, QWidget *parent)
     QVBoxLayout *layout = new QVBoxLayout();
     layout->setContentsMargins(10, 2, 10, 2);
 
-    m_iconConnected->setPixmap(QPixmap());
-    m_iconInfo->setPixmap(QPixmap());
+    m_iconConnected->setPixmap(QIcon::fromTheme("icon_ok").pixmap(QSize(24, 24)));
+    m_iconInfo->setPixmap(QIcon::fromTheme("icon_info").pixmap(QSize(24, 24)));
     m_disconnMonitor->setText(tr("Disconnect"));
-    m_disconnMonitor->setFixedWidth(100);
+    m_disconnMonitor->setFixedSize(QSize(100, 20));
     m_info->setText(tr("enable wireless network"));
     m_noDevice->setText(tr("No available casting wireless monitors found"));
     m_noDevice->setAlignment(Qt::AlignCenter);
@@ -294,7 +314,7 @@ StatePanel::StatePanel(WirelessCastingModel *model, QWidget *parent)
     connected->setMargin(0);
     connected->setAlignment(Qt::AlignCenter);
     connected->addLayout(connectedH);
-    connected->addWidget(m_disconnMonitor);
+    connected->addWidget(m_disconnMonitor, 0, Qt::AlignHCenter);
     layout->addLayout(connected);
 
     QHBoxLayout *warningInfo = new QHBoxLayout();
@@ -338,7 +358,7 @@ void StatePanel::setState(WirelessCastingModel::CastingState state)
     case WirelessCastingModel::Connected:
         m_iconConnected->setVisible(true);
         m_iconInfo->setVisible(false);
-        m_connected->setText(tr("Successfully cast the screen to %1").arg(m_model->curMonitorName()));
+        m_connected->setText(tr("Successfully cast the screen to \"%1\"").arg(m_model->curMonitorName()));
         m_connected->setVisible(true);
         m_info->setVisible(false);
         m_noDevice->setVisible(false);

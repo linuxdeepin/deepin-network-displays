@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 # Install settings
-set(CMAKE_INSTALL_PREFIX "/usr")
+set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation prefix")
 
 project(wirelesscasting-plugins)
 
@@ -53,3 +53,5 @@ target_link_libraries(dcc-wirelesscasting-plugin
 
 # 设置执行 make install 时哪个目标应该被 install 到哪个位置
 install(TARGETS ${Dcc_Plugin_Name} LIBRARY DESTINATION lib/dde-control-center/modules)
+# config
+dconfig_meta_files(APPID org.deepin.dde.control-center FILES dcc-wirelesscasting-plugin/configs/org.deepin.dde.control-center.casting.json)

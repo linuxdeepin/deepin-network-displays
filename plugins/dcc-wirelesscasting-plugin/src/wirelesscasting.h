@@ -113,6 +113,8 @@ private:
     QStandardItemModel *m_monitorsModel;
     QMap<QString, MonitorMapItem> m_monitors;
     Monitor *m_lastConnMonitor;
+    bool m_cfgShowCasting;
+    bool m_cfgEnabled;
 };
 
 #endif // WIRELESSCASTING_H

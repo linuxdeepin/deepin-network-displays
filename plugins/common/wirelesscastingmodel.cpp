@@ -1,7 +1,6 @@
 #include "wirelesscastingmodel.h"
 
 #include <ddbusinterface.h>
-//#include "ddbusinterface.h"
 
 #include <QDBusConnection>
 #include <QDBusInterface>
@@ -28,7 +27,6 @@ WirelessCastingModel::WirelessCastingModel(QObject *parent)
 {
     prepareDbus();
     initData();
-
     startTimer(std::chrono::minutes(1));
 }
 
@@ -63,6 +61,7 @@ const QString WirelessCastingModel::curMonitorName()
 
 void WirelessCastingModel::initData()
 {
+    m_dbus = new DDBusInterface(dbusService, dbusPath, dbusInterface, QDBusConnection::sessionBus(), this);
     QVariant var = m_dbus->property("SinkList");
     if (!var.isValid())
         return;
@@ -85,6 +84,8 @@ void WirelessCastingModel::updateSinkList(const QVariant &var)
 
     QStringList tmpList;
 
+    bool hasConnected = false;
+
     foreach (const QDBusObjectPath &var, list) {
         QString path = var.path();
         tmpList.append(path);
@@ -99,6 +100,10 @@ void WirelessCastingModel::updateSinkList(const QVariant &var)
     auto it = m_monitors.begin();
     while (it != m_monitors.end()) {
         if (tmpList.contains(it.key())) {
+            if (it.value()->state() == Monitor::ND_SINK_STATE_STREAMING) {
+                m_curConnected = it.value();
+                hasConnected = true;
+            }
             ++it;
             continue;
         }
@@ -108,6 +113,8 @@ void WirelessCastingModel::updateSinkList(const QVariant &var)
         it = m_monitors.erase(it);
     }
 
+    if (!hasConnected)
+        m_curConnected = nullptr;
     checkState();
 }
 
@@ -148,31 +155,13 @@ void WirelessCastingModel::checkState()
             }
         }
     } else {
-        if (Connected != m_state) {
-            m_state = Connected;
-            Q_EMIT stateChanged(m_state);
-        }
+        m_state = Connected;
+        Q_EMIT stateChanged(m_state);
     }
 }
 
 void WirelessCastingModel::prepareDbus()
 {
-
-    QDBusConnection sessionBus = QDBusConnection::sessionBus();
-
-    if (!sessionBus.isConnected()) {
-        qWarning() << "DBus not connected. Check if DBus service is running.";
-        return;
-    }
-
-    m_dbus = new DDBusInterface(dbusService, dbusPath, dbusInterface, sessionBus, this);
-
-    // 连接到 NetworkManager D-Bus 服务
-    QDBusConnection sysBus = QDBusConnection::systemBus();
-    if (!sysBus.isConnected()) {
-        qWarning() << "无法连接到 D-Bus 服务";
-    }
-
     auto checkWirelessDev = [=] () {
         m_wirelessDevCheck = false;
         m_wirelessEnabled = false;
@@ -181,7 +170,7 @@ void WirelessCastingModel::prepareDbus()
 
         // 遍历设备列表并检查是否有无线网卡设备
         foreach (const QDBusObjectPath &devicePath, devices) {
-            DDBusInterface deviceInterface("org.freedesktop.NetworkManager", devicePath.path(), "org.freedesktop.NetworkManager.Device", sysBus);
+            DDBusInterface deviceInterface("org.freedesktop.NetworkManager", devicePath.path(), "org.freedesktop.NetworkManager.Device", QDBusConnection::systemBus());
 
             // 获取设备类型
             auto reply = deviceInterface.property("DeviceType");
@@ -203,9 +192,13 @@ void WirelessCastingModel::prepareDbus()
     };
 
     // 创建 NetworkManager D-Bus 接口
-    m_dbusNM = new DDBusInterface("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager", "org.freedesktop.NetworkManager", sysBus, this);
+    m_dbusNM = new DDBusInterface("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager", "org.freedesktop.NetworkManager", QDBusConnection::systemBus(), this);
 
-    m_dbusDdeNetwork = new DDBusInterface("com.deepin.daemon.Network", "/com/deepin/daemon/Network", "com.deepin.daemon.Network", sessionBus, this);
+    m_dbusDdeNetwork = new DDBusInterface("com.deepin.daemon.Network", "/com/deepin/daemon/Network", "com.deepin.daemon.Network", QDBusConnection::sessionBus(), this);
+
+    QDBusConnection::sessionBus().connect("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "NameOwnerChanged",this,
+                                SLOT(onDBusNameOwnerChanged(QString, QString, QString)));
+
 
     checkWirelessDev();
     // 设置监听事件
@@ -215,6 +208,27 @@ void WirelessCastingModel::prepareDbus()
     connect(this, &WirelessCastingModel::AllDevicesChanged, this, [=] (const QList<QDBusObjectPath> &devList) {
         checkWirelessDev();
     });
+}
+
+void WirelessCastingModel::onDBusNameOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner)
+{
+    if ("com.deepin.Cooperation.NetworkDisplay" == name && newOwner.isEmpty()) {
+        resetNetworkDisplayData();
+        checkState();
+    }
+}
+
+void WirelessCastingModel::resetNetworkDisplayData()
+{
+    delete m_dbus;
+    auto it = m_monitors.begin();
+    while (it != m_monitors.end()) {
+        disconnect(it.value(), &Monitor::stateChanged, this, &WirelessCastingModel::handleMonitorStateCanged);
+        Q_EMIT removeMonitor(it.key());
+        it.value()->deleteLater();
+        it = m_monitors.erase(it);
+    }
+    initData();
 }
 
 void WirelessCastingModel::handleMonitorStateCanged(const Monitor::NdSinkState state)
@@ -246,16 +260,9 @@ Monitor::Monitor(QString monitorPath, QObject *parent)
     , m_state(ND_SINK_STATE_DISCONNECTED)
     , m_strength(0)
 {
-    QDBusConnection dbus = QDBusConnection::sessionBus();
-
-    if (!dbus.isConnected()) {
-        qDebug() << "DBus not connected. Check if DBus service is running.";
-        return;
-    }
-    m_dbus = new DDBusInterface(dbusService, monitorPath, sinkInterface, dbus, this);
+    m_dbus = new DDBusInterface(dbusService, monitorPath, sinkInterface, QDBusConnection::sessionBus(), this);
 
     initData();
-
 }
 
 Monitor::~Monitor()
@@ -303,6 +310,7 @@ void Monitor::initData()
         m_strength = var.toUInt();
 
     connect(this, &Monitor::StatusChanged, this, [this] (int status) {
+        qInfo() << "Monitor" << m_name << "status changed to " << status;
         checkState(status);
     });
 }
