@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/icons/deepin/builtin">
+        <file>texts/open-display-settings_16px.svg</file>
+        <file>texts/network-display-succeed_16px.svg</file>
+        <file>dark/icons/none_128px.svg</file>
+        <file>dark/icons/success_128px.svg</file>
+        <file>light/icons/none_128px.svg</file>
+        <file>light/icons/success_128px.svg</file>
+        <file>texts/monitor_16px.svg</file>
+        <file>texts/network-display-failed_16px.svg</file>
+    </qresource>
+</RCC>

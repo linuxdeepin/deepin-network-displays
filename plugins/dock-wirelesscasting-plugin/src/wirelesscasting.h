@@ -2,7 +2,6 @@
 #define WIRELESSCASTING_H
 
 #include "wirelesscastingmodel.h"
-#include <widgets/settingsitem.h>
 
 #include <DListView>
 #include <DStandardItem>
@@ -17,14 +16,9 @@ class DLabel;
 class DCommandLinkButton;
 DWIDGET_END_NAMESPACE
 
-class WirelessCastingModel;
-class QStateMachine;
-class QState;
+class QPushButton;
 
 using namespace Dtk::Widget;
-using namespace dcc::widgets;
-
-class QPushButton;
 
 class MonitorItem : public DStandardItem, public QObject
 {
@@ -32,10 +26,10 @@ public:
     explicit MonitorItem(const QString &text, Monitor *monitor, DListView *parent = nullptr);
     ~MonitorItem() Q_DECL_OVERRIDE;
 
-    void connMonitor() const { m_monitor->connMonitor(); }
-    void disconnMonitor() const { m_monitor->disconnMonitor(); }
-    Monitor *monitor() const { return m_monitor; }
-    bool connectingState() const { return m_connectingState; }
+    void connMonitor() { m_monitor->connMonitor(); }
+    void disconnMonitor() { m_monitor->disconnMonitor(); }
+    Monitor *monitor() { return m_monitor; }
+    bool connectingState() { return m_connectingState; }
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
@@ -52,7 +46,7 @@ private:
     bool m_connectingState;
 };
 
-class StatePanel : public SettingsItem
+class StatePanel : public QWidget
 {
     Q_OBJECT
 public:
@@ -75,13 +69,12 @@ signals:
 private:
     WirelessCastingModel *m_model;
     DLabel *m_iconConnected;
-    DLabel *m_iconInfo;
+    DLabel *m_iconNoDevice;
     DLabel *m_connected;
     DLabel *m_info;
     DLabel *m_noDevice;
     QPushButton *m_disconnMonitor;
 };
-
 class WirelessCasting : public QWidget
 {
     Q_OBJECT

@@ -1,0 +1,4 @@
+# Build path
+build-plugins*/
+.vscode
+CMakeLists.txt.user*
