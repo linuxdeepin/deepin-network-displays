@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>network-display-succeed-dark</title>
-    <g id="network-display-succeed-dark" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="ICON-/-TrayICON-/-Mirror" transform="translate(1, 2)" fill="#000000" fill-rule="nonzero">
-            <path d="M12.2857143,4 C13.2324881,4 14,4.7163444 14,5.6 L14,10.4 C14,11.2836556 13.2324881,12 12.2857143,12 L4.71428571,12 C3.76751186,12 3,11.2836556 3,10.4 L3,5.6 C3,4.7163444 3.76751186,4 4.71428571,4 L12.2857143,4 Z M1.69230769,0 L8.30769231,0 C9.24232804,0 10,0.7163444 10,1.6 L10,3 L4.5,3 C3.11928813,3 2,4.11928813 2,5.5 L2,8 L1.69230769,8 C0.757671962,8 0,7.2836556 0,6.4 L0,1.6 C0,0.7163444 0.757671962,0 1.69230769,0 Z" id="形状"></path>
-        </g>
-    </g>
-</svg>
