@@ -23,8 +23,10 @@ WirelessCastingItem::WirelessCastingItem(QWidget *parent)
     init();
     auto syncState = [this] {
         WirelessCastingModel::CastingState state = m_model->state();
+        bool canCasting = m_canCasting;
         m_canCasting = WirelessCastingModel::NoWirelessDevice == state ? false : true;
-        Q_EMIT canCastingChanged(m_canCasting);
+        if (canCasting != m_canCasting)
+            Q_EMIT canCastingChanged(m_canCasting);
 
         if (WirelessCastingModel::Connected != state) {
             *m_trayIcon = QIcon::fromTheme("network-display-failed");

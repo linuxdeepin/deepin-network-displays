@@ -162,10 +162,14 @@ void WirelessCasting::onStateChanged(WirelessCastingModel::CastingState state)
 
     m_monitorsListView->setVisible(WirelessCastingModel::List == state);
     switch (state) {
+    case WirelessCastingModel::NoMonitor:
+    case WirelessCastingModel::List:
+        m_refresh->show();
+        break;
     case WirelessCastingModel::Connected:
         m_lastConnMonitor = nullptr;
-        break;
     default:
+        m_refresh->hide();
         break;
     }
 }
