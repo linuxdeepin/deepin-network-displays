@@ -390,7 +390,7 @@ handle_manager_method_call (GDBusConnection *connection,
               "The device is not enable, need to enable the device first");
           return;
         }
-      g_object_set (self->meta_provider, "discover", TRUE, NULL);
+//      g_object_set (self->meta_provider, "discover", TRUE, NULL);
       // 如果是先移除sink再添加sink,那么不需要单独更新sink的属性
     }
   else if (g_strcmp0 (method_name, "Enable") == 0)

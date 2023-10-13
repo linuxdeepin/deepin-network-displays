@@ -109,12 +109,24 @@ provider_sink_removed_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvide
   // sink 是 p2p sink
   g_object_get (sink, "matches", &sink_matches, NULL);
   g_assert (sink_matches != NULL);
-
+  g_autofree gchar *t_sink_name = NULL;
+  g_object_get (sink, "display-name", &t_sink_name, NULL);
+  g_debug ("sink name is %s", t_sink_name);
   /* Search all known meta sinks for the matching one.
    * Note that we really need to search for it rather than doing
    * a faster lookup, as sink that is removed may not be reporting
    * its matches correctly anymore. */
   // 先找到对应的meta_sink
+  g_debug ("meta_provider sinks num is %d", meta_provider->sinks->len);
+  for (gint i = 0; i < meta_provider->sinks->len; i++)
+    {
+      NdMetaSink *s = g_ptr_array_index (meta_provider->sinks, i);
+      gboolean has = nd_meta_sink_has_sink (s, sink);
+      g_debug ("meta_sink has sink %d", has);
+      gchar *hw_address = NULL;
+      g_object_get (nd_meta_sink_get_sink (s), "hw-address", &hw_address, NULL);
+      g_debug ("meta_sink current sink %s", hw_address);
+    }
   g_assert (g_ptr_array_find_with_equal_func (meta_provider->sinks,
                                               sink,
                                               (GEqualFunc) nd_meta_sink_has_sink,
@@ -227,8 +239,8 @@ nd_meta_provider_class_init (NdMetaProviderClass *klass)
 static void
 nd_meta_provider_init (NdMetaProvider *meta_provider)
 {
-  // 默认不开启扫描，等待dbus扫描调用
-  meta_provider->discover = FALSE;
+  // 默认开启扫描
+  meta_provider->discover = TRUE;
 
   meta_provider->sinks = g_ptr_array_new_with_free_func (g_object_unref);
   meta_provider->providers = g_ptr_array_new_with_free_func (g_object_unref);

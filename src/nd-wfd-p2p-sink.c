@@ -128,7 +128,8 @@ nd_wfd_p2p_sink_get_property (GObject    *object,
       break;
 
     case PROP_DISPLAY_NAME:
-      g_object_get_property (G_OBJECT (sink->nm_peer), "name", value);
+//      g_object_get_property (G_OBJECT (sink->nm_peer), "name", value);
+      g_value_set_string (value, g_strdup (nm_wifi_p2p_peer_get_name (sink->nm_peer)));
       break;
 
     case PROP_MATCHES:

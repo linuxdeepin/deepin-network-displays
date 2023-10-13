@@ -474,7 +474,7 @@ init_portal_async (NdDbusSink *self)
   NdScreencastPortal *portal = NULL;
   self->cancellable = g_cancellable_new ();
   portal = nd_screencast_portal_new ();
-  self->portal = portal;
+//  self->portal = portal;
   g_async_initable_init_async (G_ASYNC_INITABLE (portal),
                                G_PRIORITY_LOW,
                                self->cancellable,
@@ -540,7 +540,7 @@ sink_real_cancel (gpointer user_data)
   if (self->cancellable)
     g_cancellable_cancel (self->cancellable);
   if (self->portal)
-    g_object_unref (self->portal);
+    g_clear_object (&self->portal);
   if (self->nd_handle_cancel_cb)
     self->nd_handle_cancel_cb (self->nd_handle_cancel_cb_user_data);
   return G_SOURCE_REMOVE;
@@ -681,6 +681,8 @@ sink_notify_state_cb (NdDbusSink *self, GParamSpec *pspec, NdSink *sink)
   switch (state)
     {
     case ND_SINK_STATE_DISCONNECTED:
+      handle_cancel (self);
+      break;
     case ND_SINK_STATE_ERROR:
       handle_cancel (self);
       msg = g_strdup_printf (_ ("Failed cast the screen to a wireless monitor %s"), self->name);
