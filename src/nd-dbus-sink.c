@@ -885,7 +885,7 @@ send_notify (NdDbusSink *self, const gchar *body)
                                                  body,
                                                  NULL,
                                                  NULL,
-                                                 0);
+                                                 5000);
   g_dbus_proxy_call (self->notify_proxy,
                      "Notify",
                      notification_params,
