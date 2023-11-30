@@ -1,0 +1,18 @@
+{
+  "Monitor": {
+    "Type": "DBus",
+    "DBus": {
+      "BusType": "System",
+      "Sender": "com.deepin.daemon.AirplaneMode",
+      "Interface": "org.freedesktop.DBus.Properties",
+      "Path": "/com/deepin/daemon/AirplaneMode",
+      "Signal": "PropertiesChanged"
+    }
+  },
+
+  "Name": "AirplaneMode changed",
+  "Description": "",
+  "Exec": ["systemctl", "--user",
+    "restart",
+    "com-deepin-Cooperation-NetworkDisplay.service"]
+}
