@@ -88,8 +88,8 @@ provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider 
             }
         }
 
-      // 重复sink无需再次添加
-      // nd_meta_sink_add_sink (meta_sink, sink);
+      // 重复sink无需再次添加 // TODO 上游存在问题:显示空白设备.移除该逻辑会导致peer remove时断言错误.需要重新梳理设备添加和删除逻辑,判断此处是否需要增加设备
+       nd_meta_sink_add_sink (meta_sink, sink);
     }
   else
     {

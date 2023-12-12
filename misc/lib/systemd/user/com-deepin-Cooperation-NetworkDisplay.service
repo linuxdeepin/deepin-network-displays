@@ -6,3 +6,5 @@ After=dbus.service graphical-session.target
 Type=dbus
 BusName=com.deepin.Cooperation.NetworkDisplay
 ExecStart=/usr/bin/deepin-network-display-daemon
+Restart=on-failure
+Environment=G_MESSAGES_DEBUG=all
