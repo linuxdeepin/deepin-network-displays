@@ -26,7 +26,7 @@ struct _NdMetaProvider
 
   gboolean   discover;
 
-  GPtrArray *sinks;
+  GPtrArray *sinks;  // meta_sink
   GPtrArray *providers;
 };
 
@@ -59,7 +59,7 @@ provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider 
   g_assert (sink_matches != NULL);
 
   meta_sinks = g_ptr_array_new ();
-
+  // sink 为 p2p-sink
   for (gint i = 0; i < meta_provider->sinks->len; i++)
     if (nd_meta_sink_matches_sink (g_ptr_array_index (meta_provider->sinks, i), sink)) // 通过matches字段(实际是数组)的内容判断是否为同一个设备
       g_ptr_array_add (meta_sinks, g_ptr_array_index (meta_provider->sinks, i));
@@ -69,10 +69,10 @@ provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider 
 
   if (meta_sinks->len > 0)
     {
-      g_info("matched sink num == 1");
+      g_info("matched sink num == 1"); // 如果sink_added的是一个已经有的peer(hw_address 一致)
       meta_sink = g_ptr_array_remove_index (meta_sinks, 0); // g_ptr_array_remove_index返回值是移除的那个元素
 
-      while (meta_sinks->len > 0)
+      while (meta_sinks->len > 0) // 异常情况才会出现
         {
           NdMetaSink *merge_meta;
           NdSink *merge_sink;
@@ -88,8 +88,8 @@ provider_sink_added_cb (NdMetaProvider *meta_provider, NdSink *sink, NdProvider 
             }
         }
 
-      // 重复sink无需再次添加 // TODO 上游存在问题:显示空白设备.移除该逻辑会导致peer remove时断言错误.需要重新梳理设备添加和删除逻辑,判断此处是否需要增加设备
-       nd_meta_sink_add_sink (meta_sink, sink);
+      // 重复sink无需再次添加
+      // nd_meta_sink_add_sink (meta_sink, sink);
     }
   else
     {

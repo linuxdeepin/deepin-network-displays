@@ -25,8 +25,8 @@ struct _NdNMDeviceRegistry
 {
   GObject         parent_instance;
 
-  GPtrArray      *providers;
-  NdMetaProvider *meta_provider;
+  GPtrArray      *providers; // P2P provider
+  NdMetaProvider *meta_provider; // 唯一的 meta
 
   GCancellable   *cancellable;
   NMClient       *nm_client;

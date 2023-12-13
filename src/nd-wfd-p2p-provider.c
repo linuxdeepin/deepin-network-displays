@@ -97,6 +97,20 @@ peer_added_cb (NdWFDP2PProvider *provider, NMWifiP2PPeer *peer, NMDevice *device
            nm_wifi_p2p_peer_get_hw_address (peer),
            device);
 
+  // 重复hw_address的peer不再无脑添加
+  const gchar *peer_hw_address = nm_wifi_p2p_peer_get_hw_address (peer);
+  g_debug ("add new peer hw_address: %s", peer_hw_address);
+
+  for (gint i = 0; i < provider->sinks->len; i++)
+    {
+      g_autoptr (NdWFDP2PSink) sink = g_object_ref (g_ptr_array_index (provider->sinks, i));
+      gchar *sink_hw_address = NULL;
+      g_object_get (sink, "hw-address", &sink_hw_address, NULL);
+
+      if (g_str_equal (sink_hw_address, peer_hw_address))
+        return;
+    }
+
   sink = nd_wfd_p2p_sink_new (provider->nm_client, provider->nm_device, peer);
 
   g_ptr_array_add (provider->sinks, sink);

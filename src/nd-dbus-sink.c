@@ -555,7 +555,7 @@ nd_pulseaudio_unload_module_cb (pa_context *c, int success, void *userdata)
   sink_real_cancel (self);
   g_source_remove (self->unload_pa_module_source_id);
   self->unload_pa_module_source_id = 0;
-  exit (1); // TODO 临时方案，每次断开连接后，退出进程，由systemd重启拉起来服务，解决两个问题：1.部分已经移除的peer没有被停止导出;2.wayland下停止投屏后内存高占用.
+//  exit (1); // TODO 需要解决wayland下停止投屏后内存高占用问题.
 }
 
 static const guint quit_timeout = 25;
