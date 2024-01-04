@@ -686,7 +686,7 @@ sink_notify_state_cb (NdDbusSink *self, GParamSpec *pspec, NdSink *sink)
       break;
     case ND_SINK_STATE_ERROR:
       handle_cancel (self);
-      msg = g_strdup_printf (_ ("Failed cast the screen to a wireless monitor %s"), self->name);
+      msg = g_strdup_printf (_("Unable to cast screen to %s"), self->name);
       send_notify (self, msg);
       break;
     case ND_SINK_STATE_ENSURE_FIREWALL:
@@ -698,7 +698,7 @@ sink_notify_state_cb (NdDbusSink *self, GParamSpec *pspec, NdSink *sink)
     case ND_SINK_STATE_WAIT_STREAMING:
       break;
     case ND_SINK_STATE_STREAMING:
-      msg = g_strdup_printf (_ ("Cast the screen to a wireless monitor %s"), self->name);
+      msg = g_strdup_printf (_("Successfully cast the screen to %s"), self->name);
       send_notify (self, msg);
       break;
     default:
