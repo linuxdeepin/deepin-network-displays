@@ -1,0 +1,32 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the deepin-network-displays package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# Translators:
+# deepiner, 2024
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: deepin-network-displays\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-04 09:48+0800\n"
+"PO-Revision-Date: 2024-01-04 02:21+0000\n"
+"Last-Translator: deepiner, 2024\n"
+"Language-Team: Chinese (Taiwan) (https://app.transifex.com/linuxdeepin/teams/3617/zh_TW/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../src/nd-dbus-sink.c:689
+#, c-format
+msgid "Unable to cast screen to %s"
+msgstr "無法投屏至 %s"
+
+#: ../src/nd-dbus-sink.c:701
+#, c-format
+msgid "Successfully cast the screen to %s"
+msgstr "已成功投屏至 %s"
