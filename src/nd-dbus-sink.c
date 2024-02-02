@@ -882,7 +882,7 @@ send_notify (NdDbusSink *self, const gchar *body)
                                                  "Deepin network display",
                                                  0,
                                                  "dialog-information",
-                                                 "network display",
+                                                 "",
                                                  body,
                                                  NULL,
                                                  NULL,
