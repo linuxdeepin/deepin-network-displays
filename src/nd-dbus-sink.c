@@ -530,6 +530,7 @@ static gboolean
 sink_real_cancel (gpointer user_data)
 {
   NdDbusSink *self = ND_DBUS_SINK (user_data);
+  D_ND_INFO("start real cancel screen cast");
   stop_stream (self);
   if (stream_sink)
     {
@@ -553,18 +554,29 @@ nd_pulseaudio_unload_module_cb (pa_context *c, int success, void *userdata)
   NdDbusSink *self = ND_DBUS_SINK (userdata);
   D_ND_INFO ("unload pa module end, continue cancel");
   sink_real_cancel (self);
-  g_source_remove (self->unload_pa_module_source_id);
-  self->unload_pa_module_source_id = 0;
+//  gboolean removed = g_source_remove (self->unload_pa_module_source_id);
+//  self->unload_pa_module_source_id = 0;
+//  D_ND_WARNING ("unload_pa_module_source_id is %d",removed);
 //  exit (1); // TODO 需要解决wayland下停止投屏后内存高占用问题.
 }
 
 static const guint quit_timeout = 25;
 
+static gboolean
+sink_real_cancel_wrapper (gpointer user_data)
+{
+  D_ND_WARNING ("RUNNING sink_real_cancel_wrapper");
+  return sink_real_cancel(user_data);
+}
+
 static void
 handle_cancel (NdDbusSink *self)
 {
+  D_ND_WARNING ("RUNNING handle_cancel");
+  // 暂时移除25s超时处理。原因：handle_cancel会在断开连接后多次触发，导致最后一次的超时处理任务没有被正常取消，导致投屏断开。
+  // 后续考虑缩短时间或者修改相关流程
+//  self->unload_pa_module_source_id = g_timeout_add_seconds (quit_timeout, sink_real_cancel_wrapper, self);
   nd_pulseaudio_unload_module (self->pulse, nd_pulseaudio_unload_module_cb, self);
-  self->unload_pa_module_source_id = g_timeout_add_seconds (quit_timeout, sink_real_cancel, self);
 }
 
 static GstElement *
@@ -789,6 +801,7 @@ handle_sink_method_call (GDBusConnection *connection,
           return;
         }
       self->is_portal_init_running = FALSE;
+      D_ND_WARNING ("Actively canceled screencast");
       handle_cancel (self);
     }
   else
