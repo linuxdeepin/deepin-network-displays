@@ -134,7 +134,7 @@ nd_dbus_manager_init (NdDbusManager *self)
   // 监听 nm_client 的事件，并将数据设置给 meta_provider;
   self->nm_device_registry = nd_nm_device_registry_new (self->meta_provider);
   // 主动判断一次,是否有设备可以进行P2P连接
-  on_meta_provider_has_provider_changed_cb (self, NULL, NULL);
+//  on_meta_provider_has_provider_changed_cb (self, NULL, NULL);
   // 开启/关闭扫描
   g_object_set (self->meta_provider, "discover", self->discover, NULL);
   // 监听sink增减,创建对应的dbus-sink
