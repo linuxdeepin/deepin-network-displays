@@ -168,7 +168,7 @@ nd_meta_provider_get_property (GObject    *object,
       break;
 
     case PROP_HAS_PROVIDERS:
-      g_value_set_boolean (value, self->providers->len > 0);
+      g_value_set_boolean (value, self->providers->len > 0); // TODO
       break;
 
     default:
@@ -291,6 +291,11 @@ nd_meta_provider_get_providers (NdMetaProvider *meta_provider)
     res = g_list_prepend (res, meta_provider->providers->pdata[i]);
 
   return res;
+}
+
+void
+nd_meta_reset_has_provider(NdMetaProvider *meta_provider){
+    g_object_notify_by_pspec (G_OBJECT (meta_provider), props[PROP_HAS_PROVIDERS]);
 }
 
 /**

@@ -143,7 +143,7 @@ client_init_async_finished (GObject *source, GAsyncResult *res, gpointer user_da
   g_debug ("NdNMDeviceRegistry: Got NMClient");
 
   registry = ND_NM_DEVICE_REGISTRY (user_data);
-
+  nd_meta_reset_has_provider(registry->meta_provider);
   /* Everything good, we already connected and possibly received
    * the device-added/device-removed signals. */
 }

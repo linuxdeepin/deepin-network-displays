@@ -34,6 +34,7 @@ void             nd_meta_provider_add_provider (NdMetaProvider *meta_provider,
                                                 NdProvider     *provider);
 void             nd_meta_provider_remove_provider (NdMetaProvider *meta_provider,
                                                    NdProvider     *provider);
+void             nd_meta_reset_has_provider(NdMetaProvider *meta_provider);
 
 
 G_END_DECLS
