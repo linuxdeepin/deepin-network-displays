@@ -47,8 +47,9 @@ static GMainLoop *loop;
 #define DEEPIN_ND_DBUS_INTERFACE "com.deepin.Cooperation.NetworkDisplay"
 #define DEEPIN_ND_DBUS_NAME "com.deepin.Cooperation.NetworkDisplay"
 
-static const uint idle_quit_sec = 180;
-
+// 闲时退出时间
+static const uint idle_quit_sec = 60;
+static const uint idle_check_sec = 10;
 // gobject 相关操作
 struct _NdDbusManager
 {
@@ -135,13 +136,13 @@ nd_dbus_manager_init (NdDbusManager *self)
   self->nm_device_registry = nd_nm_device_registry_new (self->meta_provider);
   // 主动判断一次,是否有设备可以进行P2P连接
 //  on_meta_provider_has_provider_changed_cb (self, NULL, NULL);
-  // 开启/关闭扫描
-  g_object_set (self->meta_provider, "discover", self->discover, NULL);
+  // 初始化时不开启p2p扫描
+  // g_object_set (self->meta_provider, "discover", self->discover, NULL);
   // 监听sink增减,创建对应的dbus-sink
   handle_provider_signal (self);
 
   g_get_current_time (&self->busy_time);
-  g_timeout_add_seconds (idle_quit_sec, idle_auto_quit_check, self);
+  g_timeout_add_seconds (idle_check_sec, idle_auto_quit_check, self);
 }
 
 // 处理持有对象的信号和回调
@@ -254,6 +255,7 @@ handle_provider_signal (NdDbusManager *self)
 static gboolean
 idle_auto_quit_check (gpointer user_data)
 {
+  D_ND_INFO("idle_auto_quit_check");
   NdDbusManager *self = ND_DBUS_MANAGER (user_data);
   for (gint i = 0; i < self->sink_list->len; i++)
     {
@@ -270,10 +272,28 @@ idle_auto_quit_check (gpointer user_data)
   if ((current_time.tv_sec - self->busy_time.tv_sec) > idle_quit_sec)
     {
       D_ND_INFO ("The service is in idle state and can quit.");
+      // 退出时关闭扫描
+      g_object_set (self->meta_provider, "discover", FALSE, NULL);
       handle_manager_quit (self);
       return G_SOURCE_REMOVE;
     }
   return G_SOURCE_CONTINUE;
+}
+
+static gboolean
+has_busy_sink(NdDbusManager *self)
+{
+    for (gint i = 0; i < self->sink_list->len; i++)
+    {
+        NdDbusSink *sink = (NdDbusSink *) self->sink_list->pdata[i];
+        NdSinkState state = nd_sink_dbus_get_status (sink);
+        if (state != ND_SINK_STATE_DISCONNECTED)
+        {
+            D_ND_INFO ("has busy sink");
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 /*
@@ -390,7 +410,12 @@ handle_manager_method_call (GDBusConnection *connection,
               "The device is not enable, need to enable the device first");
           return;
         }
-//      g_object_set (self->meta_provider, "discover", TRUE, NULL);
+      // 如果没有繁忙的sink，可以进行一次discover。
+      if (!has_busy_sink(self))
+      {
+          g_object_set (self->meta_provider, "discover", TRUE, NULL);
+      }
+
       // 如果是先移除sink再添加sink,那么不需要单独更新sink的属性
     }
   else if (g_strcmp0 (method_name, "Enable") == 0)

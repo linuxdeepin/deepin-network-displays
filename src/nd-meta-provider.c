@@ -239,8 +239,8 @@ nd_meta_provider_class_init (NdMetaProviderClass *klass)
 static void
 nd_meta_provider_init (NdMetaProvider *meta_provider)
 {
-  // 默认开启扫描
-  meta_provider->discover = TRUE;
+  // 默认不开启扫描
+  meta_provider->discover = FALSE;
 
   meta_provider->sinks = g_ptr_array_new_with_free_func (g_object_unref);
   meta_provider->providers = g_ptr_array_new_with_free_func (g_object_unref);

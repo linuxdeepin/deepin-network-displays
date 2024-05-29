@@ -205,15 +205,28 @@ device_restart_find_timeout (gpointer user_data)
   return G_SOURCE_CONTINUE;
 }
 
+static gboolean
+device_stop_find_timeout (gpointer user_data)
+{
+    NdWFDP2PProvider *provider = ND_WFD_P2P_PROVIDER (user_data);
+
+    g_debug ("WFDP2PProvider: Stop P2P discovery");
+    nm_device_wifi_p2p_stop_find (NM_DEVICE_WIFI_P2P (provider->nm_device), NULL, NULL, NULL);
+
+    return G_SOURCE_REMOVE;
+}
+
 static void
 discovery_start_stop (NdWFDP2PProvider *provider, NMDeviceState state)
 {
   if (provider->discover && state > NM_DEVICE_STATE_UNAVAILABLE)
     {
       g_debug ("WFDP2PProvider: Starting P2P discovery.");
-      nm_device_wifi_p2p_start_find (NM_DEVICE_WIFI_P2P (provider->nm_device), NULL, NULL, log_start_find_error, NULL);
-      if (!provider->p2p_find_source_id)
-        provider->p2p_find_source_id = g_timeout_add_seconds (20, device_restart_find_timeout, provider); // TODO 应该不再需求，又前端调用刷新
+      nm_device_wifi_p2p_start_find(NM_DEVICE_WIFI_P2P (provider->nm_device), NULL, NULL, log_start_find_error, NULL);
+      // 扫描10s后停止扫描
+      g_timeout_add_seconds(10, device_stop_find_timeout, provider);
+//      if (!provider->p2p_find_source_id)
+//        provider->p2p_find_source_id = g_timeout_add_seconds (20, device_restart_find_timeout, provider); // TODO 应该不再需要，有前端调用刷新
     }
   else
     {
