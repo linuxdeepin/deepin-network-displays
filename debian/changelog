@@ -1,3 +1,9 @@
+deepin-network-displays (0.90.6-deepin1) unstable; urgency=medium
+
+  * update changelog
+
+ -- fuleyi <fuleyi@uniontech.com>  Thu, 11 Jul 2024 11:11:58 +0800
+
 deepin-network-displays (0.90.5-4) unstable; urgency=medium
 
   * deepin network display init;
