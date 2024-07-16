@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deepin-network-displays\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-04 09:48+0800\n"
-"PO-Revision-Date: 2024-01-04 02:21+0000\n"
+"POT-Creation-Date: 2024-07-16 14:59+0800\n"
+"PO-Revision-Date: 2024-07-16 07:00+0000\n"
 "Last-Translator: Janusz Ruchała, 2024\n"
 "Language-Team: Polish (https://app.transifex.com/linuxdeepin/teams/3617/pl/)\n"
 "MIME-Version: 1.0\n"
@@ -21,12 +21,16 @@ msgstr ""
 "Language: pl\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
 
-#: ../src/nd-dbus-sink.c:689
+#: src/nd-dbus-sink.c:701
 #, c-format
 msgid "Unable to cast screen to %s"
 msgstr "Nie można kastować ekranu do %s"
 
-#: ../src/nd-dbus-sink.c:701
+#: src/nd-dbus-sink.c:713
 #, c-format
 msgid "Successfully cast the screen to %s"
 msgstr "Pomyślnie kastuję ekran do %s"
+
+#: src/nd-dbus-sink.c:896
+msgid "Screen Casting"
+msgstr ""

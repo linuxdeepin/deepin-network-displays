@@ -3,13 +3,17 @@
 # This file is distributed under the same license as the deepin-network-displays package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
+# Translators:
+# 阿迪力 买买提明 <251078110@qq.com>, 2024
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: deepin-network-displays\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-04 09:48+0800\n"
-"PO-Revision-Date: 2024-01-04 02:21+0000\n"
+"POT-Creation-Date: 2024-07-16 14:59+0800\n"
+"PO-Revision-Date: 2024-07-16 07:00+0000\n"
+"Last-Translator: 阿迪力 买买提明 <251078110@qq.com>, 2024\n"
 "Language-Team: Uyghur (https://app.transifex.com/linuxdeepin/teams/3617/ug/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,12 +21,16 @@ msgstr ""
 "Language: ug\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/nd-dbus-sink.c:689
+#: src/nd-dbus-sink.c:701
 #, c-format
 msgid "Unable to cast screen to %s"
-msgstr ""
+msgstr "%s ئېكرانغا ئاتقىلى بولمىدى"
 
-#: ../src/nd-dbus-sink.c:701
+#: src/nd-dbus-sink.c:713
 #, c-format
 msgid "Successfully cast the screen to %s"
+msgstr "%s ئېكرانغا ئېتىلدى"
+
+#: src/nd-dbus-sink.c:896
+msgid "Screen Casting"
 msgstr ""

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deepin-network-displays\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-04 09:48+0800\n"
-"PO-Revision-Date: 2024-01-04 02:21+0000\n"
+"POT-Creation-Date: 2024-07-16 14:59+0800\n"
+"PO-Revision-Date: 2024-07-16 07:00+0000\n"
 "Language-Team: Khmer (Cambodia) (https://app.transifex.com/linuxdeepin/teams/3617/km_KH/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,12 +17,16 @@ msgstr ""
 "Language: km_KH\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../src/nd-dbus-sink.c:689
+#: src/nd-dbus-sink.c:701
 #, c-format
 msgid "Unable to cast screen to %s"
 msgstr ""
 
-#: ../src/nd-dbus-sink.c:701
+#: src/nd-dbus-sink.c:713
 #, c-format
 msgid "Successfully cast the screen to %s"
+msgstr ""
+
+#: src/nd-dbus-sink.c:896
+msgid "Screen Casting"
 msgstr ""
