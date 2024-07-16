@@ -754,6 +754,7 @@ nd_sink_dbus_export (NdDbusSink *self)
   self->registration_id = registration_id;
 }
 
+
 void
 nd_sink_dbus_stop_export (NdDbusSink *self)
 {
@@ -892,7 +893,7 @@ static void
 send_notify (NdDbusSink *self, const gchar *body)
 {
   GVariant *notification_params = g_variant_new ("(susssasa{sv}i)",
-                                                 "Deepin network display",
+                                                 _("Screen Casting"),
                                                  0,
                                                  "dialog-information",
                                                  "",
