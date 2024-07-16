@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: deepin-network-displays\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-04 09:48+0800\n"
-"PO-Revision-Date: 2024-01-04 02:21+0000\n"
+"POT-Creation-Date: 2024-07-16 14:59+0800\n"
+"PO-Revision-Date: 2024-07-16 07:00+0000\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>, 2024\n"
 "Language-Team: Dutch (https://app.transifex.com/linuxdeepin/teams/3617/nl/)\n"
 "MIME-Version: 1.0\n"
@@ -21,12 +21,16 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/nd-dbus-sink.c:689
+#: src/nd-dbus-sink.c:701
 #, c-format
 msgid "Unable to cast screen to %s"
 msgstr "Het scherm kan niet worden gedeeld met %s"
 
-#: ../src/nd-dbus-sink.c:701
+#: src/nd-dbus-sink.c:713
 #, c-format
 msgid "Successfully cast the screen to %s"
 msgstr "Het scherm wordt gedeeld met %s"
+
+#: src/nd-dbus-sink.c:896
+msgid "Screen Casting"
+msgstr ""
