@@ -1,3 +1,9 @@
+deepin-network-displays (0.90.6-deepin2) unstable; urgency=medium
+
+  * chore: 增加通知标题多语言(Issue: 9693)
+
+ -- zyz <zhaoyignzhen@uniontech.com>  Wed, 24 Jul 2024 14:11:27 +0800
+
 deepin-network-displays (0.90.6-deepin1) unstable; urgency=medium
 
   * update changelog
